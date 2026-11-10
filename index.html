@@ -16,31 +16,20 @@
       font-family: "Quicksand", sans-serif; text-align: center;
     }
     main { width: 100%; padding: 2rem; }
-    .date { font-size: clamp(1rem, 2.8vw, 2rem); opacity: .82; margin-bottom: 1.3rem; }
-    .label { color: #6096BA; font-size: clamp(1rem, 2.4vw, 1.7rem); letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
     #names { font-size: clamp(2.5rem, 8vw, 7rem); font-weight: 700; line-height: 1.08; margin-top: .5rem; overflow-wrap: anywhere; }
     #status { font-size: .85rem; opacity: .55; margin-top: 1.6rem; }
   </style>
 </head>
 <body>
   <main>
-    <div class="date" id="date"></div>
-    <div class="label">Dagens namnsdag</div>
     <div id="names" aria-live="polite">Hämtar…</div>
     <div id="status"></div>
   </main>
   <script>
     const API = "https://namnsdag.tammergard.se/api/v1/today?countryCode=SE";
-    const dateEl = document.getElementById("date");
     const namesEl = document.getElementById("names");
     const statusEl = document.getElementById("status");
 
-    function getSwedishDate() {
-      return new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "Europe/Stockholm", weekday: "long", year: "numeric",
-        month: "long", day: "numeric"
-      }).format(new Date());
-    }
     function extractNames(data) {
       if (Array.isArray(data)) return data.map(x => typeof x === "string" ? x : x?.name || x?.names).flat().filter(Boolean);
       const candidates = data?.names ?? data?.nameDays ?? data?.namedays ?? data?.data ?? data?.result;
@@ -50,7 +39,6 @@
       return [];
     }
     async function update() {
-      dateEl.textContent = getSwedishDate();
       try {
         const response = await fetch(API, { cache: "no-store" });
         if (!response.ok) throw new Error("API-svar " + response.status);
@@ -65,7 +53,6 @@
     }
     update();
     setInterval(update, 10 * 60 * 1000);
-    setInterval(() => { dateEl.textContent = getSwedishDate(); }, 60 * 1000);
   </script>
 </body>
 </html>
