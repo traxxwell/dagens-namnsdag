@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nedräkning till jullovet</title>
+  <title>Skoldagar kvar till jullovet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; width: 100%; min-height: 100%; }
@@ -14,66 +14,39 @@
       min-height: 100vh;
       display: grid;
       place-items: center;
-      padding: 12px;
+      padding: 4px;
       overflow: hidden;
       background: #274C77;
       color: #A3CEF1;
       font-family: "Quicksand", sans-serif;
-      text-align: center;
-    }
-    main { width: 100%; }
-    .heading {
-      margin: 0 0 12px;
-      font-size: clamp(14px, 3vw, 21px);
-      font-weight: 700;
-      letter-spacing: .04em;
     }
     #digits {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: clamp(4px, 1.2vw, 10px);
-      flex-wrap: nowrap;
+      gap: clamp(5px, 1.2vw, 10px);
     }
     .digit {
       display: grid;
       place-items: center;
-      width: clamp(34px, 9vw, 66px);
-      height: clamp(42px, 11vw, 76px);
+      width: clamp(38px, 9vw, 66px);
+      height: clamp(44px, 11vw, 76px);
       border: 2px solid rgba(163, 206, 241, .85);
       border-radius: 8px;
       background: rgba(255,255,255,.09);
       box-shadow: 0 4px 0 rgba(10, 28, 48, .28), inset 0 1px 0 rgba(255,255,255,.12);
-      font-size: clamp(25px, 7vw, 48px);
+      font-size: clamp(27px, 7vw, 48px);
       font-weight: 700;
       line-height: 1;
       font-variant-numeric: tabular-nums;
     }
-    .unit {
-      margin-top: 7px;
-      font-size: clamp(9px, 2vw, 12px);
-      font-weight: 600;
-      letter-spacing: .12em;
-      opacity: .85;
-    }
-    .footer {
-      margin-top: 12px;
-      font-size: clamp(10px, 2.2vw, 13px);
-      font-weight: 600;
-      opacity: .8;
-    }
   </style>
 </head>
 <body>
-  <main aria-live="polite">
-    <h1 class="heading">🎄 SKOLDAGAR KVAR TILL JULLOVET 🎄</h1>
-    <div id="digits" aria-label="Antal skoldagar kvar"></div>
-    <div class="unit">SKOLDAGAR</div>
-    <div class="footer" id="footer">Sista skoldagen är 18 december</div>
-  </main>
+  <main id="digits" aria-live="polite" aria-label="Skoldagar kvar till jullovet"></main>
   <script>
-    // Nyköpings kommunala grundskolor: sista skoldagen HT 2026 är 18 december.
-    // Räkna vardagar efter dagens datum, exklusive studiedagen 25 november.
+    // Sista skoldagen i Nyköpings kommun höstterminen 2026 är 18 december.
+    // Studiedagen 25 november räknas inte som skoldag.
     const LAST_SCHOOL_DAY = "2026-12-18";
     const NON_SCHOOL_DAYS = new Set(["2026-11-25"]);
 
@@ -106,8 +79,6 @@
       const value = String(count).padStart(2, "0");
       document.getElementById("digits").innerHTML = [...value]
         .map(digit => '<span class="digit">' + digit + '</span>').join("");
-      document.getElementById("footer").textContent =
-        count === 0 ? "Nu är jullovet här! 🎅" : "Sista skoldagen är fredag 18 december";
     }
 
     render();
