@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dagens lunch</title>
+  <title>Dagens mat</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,7 +35,6 @@
     <div id="status"></div>
   </main>
   <script>
-    const RSS_URL = "https://menu.matildaplatform.com/rss?displayMode=Day&distributorId=684ae3739eb9066bde5e1de9&lang=sv";
     const mealEl = document.getElementById("meal");
     const statusEl = document.getElementById("status");
 
@@ -50,36 +49,20 @@
 
     async function updateMeal() {
       try {
-        const response = await fetch(RSS_URL, { cache: "no-store" });
-        if (!response.ok) throw new Error("RSS-svar " + response.status);
-        const xmlText = await response.text();
-        const xml = new DOMParser().parseFromString(xmlText, "application/xml");
-        if (xml.querySelector("parsererror")) throw new Error("Ogiltigt RSS-format");
-
-        const today = todayInSweden();
-        const items = Array.from(xml.querySelectorAll("channel > item"));
-        const item = items.find(entry => {
-          const guid = entry.querySelector("guid")?.textContent || "";
-          const link = entry.querySelector("link")?.textContent || "";
-          const updated = entry.getElementsByTagNameNS("*", "updated")[0]?.textContent || "";
-          return guid.includes(today) || link.includes(today) || updated.startsWith(today);
-        }) || (items.length === 1 ? items[0] : null);
-
-        if (!item) throw new Error("Ingen matsedel hittades för idag");
-        let description = item.querySelector("description")?.textContent || "";
-        description = description.replace(/^\s*Dagens\s*/i, "").trim();
-        description = description.replace(/\s*&\s*/g, " & ").replace(/\s+/g, " ");
-
-        mealEl.textContent = description || "Ingen lunchinformation hittades";
+        const response = await fetch("./meal.json?t=" + Date.now(), { cache: "no-store" });
+        if (!response.ok) throw new Error("Matsedeln kunde inte hämtas");
+        const data = await response.json();
+        if (data.date !== todayInSweden()) throw new Error("Dagens matsedel har inte publicerats ännu");
+        mealEl.textContent = data.meal || "Ingen lunchinformation hittades";
         statusEl.textContent = "";
       } catch (error) {
-        mealEl.textContent = "Kunde inte hämta dagens lunch";
-        statusEl.textContent = "Om problemet kvarstår kan matsedeln behöva hämtas via en annan anslutning.";
+        mealEl.textContent = "Dagens lunch uppdateras…";
+        statusEl.textContent = "Matsedeln hämtas automatiskt. Försök igen om en liten stund.";
       }
     }
 
     updateMeal();
-    setInterval(updateMeal, 15 * 60 * 1000);
+    setInterval(updateMeal, 5 * 60 * 1000);
   </script>
 </body>
 </html>
