@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Veckonummer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 6px;
+      overflow: hidden;
+      background: #274C77;
+      color: #A3CEF1;
+      font-family: "Quicksand", sans-serif;
+    }
+    main { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+    .label {
+      font-size: 19px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    #week {
+      display: grid;
+      place-items: center;
+      width: 108px;
+      height: 116px;
+      border: 3px solid rgba(163, 206, 241, .95);
+      border-radius: 12px;
+      background: rgba(255,255,255,.10);
+      box-shadow: 0 6px 0 rgba(10, 28, 48, .32), inset 0 1px 0 rgba(255,255,255,.14);
+      color: #A3CEF1;
+      font-size: 86px;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <main aria-label="Aktuellt veckonummer">
+    <div class="label">VECKA</div>
+    <div id="week" aria-live="polite">--</div>
+  </main>
+  <script>
+    function getISOWeek(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function render() {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Stockholm",
+        year: "numeric", month: "2-digit", day: "2-digit"
+      }).formatToParts(new Date());
+      const get = type => Number(parts.find(p => p.type === type).value);
+      const localDate = new Date(Date.UTC(get("year"), get("month") - 1, get("day")));
+      document.getElementById("week").textContent = getISOWeek(localDate);
+    }
+
+    render();
+    setInterval(render, 60 * 60 * 1000);
+  </script>
+</body>
+</html>
