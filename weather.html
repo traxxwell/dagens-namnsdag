@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vädret</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; }
+    body {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #274C77;
+      color: #A3CEF1;
+      font-family: "Quicksand", sans-serif;
+    }
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      height: 100%;
+      padding: 8px;
+    }
+    #icon {
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      line-height: 1;
+    }
+    #temperature {
+      font-size: clamp(2.3rem, 9vw, 5rem);
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <main aria-live="polite" aria-label="Aktuellt väder">
+    <span id="icon" role="img" aria-label="Väder">⛅</span>
+    <span id="temperature">--°</span>
+  </main>
+  <script>
+    // Tystberga, Södermanland
+    const LATITUDE = 58.848;
+    const LONGITUDE = 17.23;
+    const API = "https://api.open-meteo.com/v1/forecast"
+      + "?latitude=" + LATITUDE
+      + "&longitude=" + LONGITUDE
+      + "&current=temperature_2m,weather_code,is_day"
+      + "&temperature_unit=celsius"
+      + "&timezone=Europe%2FStockholm";
+
+    const iconEl = document.getElementById("icon");
+    const temperatureEl = document.getElementById("temperature");
+
+    function weatherSymbol(code, isDay) {
+      if (code === 0) return isDay ? "☀️" : "🌙";
+      if (code === 1) return isDay ? "🌤️" : "🌙";
+      if (code === 2) return "⛅";
+      if (code === 3) return "☁️";
+      if (code === 45 || code === 48) return "🌫️";
+      if ([51, 53, 55, 56, 57].includes(code)) return "🌦️";
+      if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "🌧️";
+      if ([71, 73, 75, 77, 85, 86].includes(code)) return "❄️";
+      if ([95, 96, 99].includes(code)) return "⛈️";
+      return "🌡️";
+    }
+
+    async function updateWeather() {
+      try {
+        const response = await fetch(API + "&_=" + Date.now(), { cache: "no-store" });
+        if (!response.ok) throw new Error("Väderdata kunde inte hämtas");
+        const data = await response.json();
+        const current = data.current;
+        if (!current || typeof current.temperature_2m !== "number") {
+          throw new Error("Väderdata saknas");
+        }
+
+        temperatureEl.textContent = Math.round(current.temperature_2m) + "°";
+        iconEl.textContent = weatherSymbol(current.weather_code, current.is_day === 1);
+        iconEl.setAttribute("aria-label", "Väderkod " + current.weather_code);
+      } catch (error) {
+        temperatureEl.textContent = "--°";
+        iconEl.textContent = "🌡️";
+      }
+    }
+
+    updateWeather();
+    setInterval(updateWeather, 15 * 60 * 1000);
+  </script>
+</body>
+</html>
