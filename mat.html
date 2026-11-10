@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dagens lunch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; height: 100%; }
+    body {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #274C77;
+      color: #A3CEF1;
+      font-family: "Quicksand", sans-serif;
+      text-align: center;
+    }
+    main { width: 100%; padding: 1.5rem 2rem; }
+    #meal {
+      font-size: clamp(1.5rem, 4vw, 3rem);
+      font-weight: 700;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    #status { font-size: .9rem; opacity: .75; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="meal" aria-live="polite">Hämtar dagens lunch…</div>
+    <div id="status"></div>
+  </main>
+  <script>
+    const RSS_URL = "https://menu.matildaplatform.com/rss?displayMode=Day&distributorId=684ae3739eb9066bde5e1de9&lang=sv";
+    const mealEl = document.getElementById("meal");
+    const statusEl = document.getElementById("status");
+
+    function todayInSweden() {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Stockholm",
+        year: "numeric", month: "2-digit", day: "2-digit"
+      }).formatToParts(new Date());
+      const part = type => parts.find(p => p.type === type).value;
+      return part("year") + "-" + part("month") + "-" + part("day");
+    }
+
+    async function updateMeal() {
+      try {
+        const response = await fetch(RSS_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error("RSS-svar " + response.status);
+        const xmlText = await response.text();
+        const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+        if (xml.querySelector("parsererror")) throw new Error("Ogiltigt RSS-format");
+
+        const today = todayInSweden();
+        const items = Array.from(xml.querySelectorAll("channel > item"));
+        const item = items.find(entry => {
+          const guid = entry.querySelector("guid")?.textContent || "";
+          const link = entry.querySelector("link")?.textContent || "";
+          const updated = entry.getElementsByTagNameNS("*", "updated")[0]?.textContent || "";
+          return guid.includes(today) || link.includes(today) || updated.startsWith(today);
+        }) || (items.length === 1 ? items[0] : null);
+
+        if (!item) throw new Error("Ingen matsedel hittades för idag");
+        let description = item.querySelector("description")?.textContent || "";
+        description = description.replace(/^\s*Dagens\s*/i, "").trim();
+        description = description.replace(/\s*&\s*/g, " & ").replace(/\s+/g, " ");
+
+        mealEl.textContent = description || "Ingen lunchinformation hittades";
+        statusEl.textContent = "";
+      } catch (error) {
+        mealEl.textContent = "Kunde inte hämta dagens lunch";
+        statusEl.textContent = "Om problemet kvarstår kan matsedeln behöva hämtas via en annan anslutning.";
+      }
+    }
+
+    updateMeal();
+    setInterval(updateMeal, 15 * 60 * 1000);
+  </script>
+</body>
+</html>
