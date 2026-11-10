@@ -2,6 +2,8 @@ name: Publish namnsdag widget
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +21,43 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Fetch today's lunch from Matilda RSS
+        run: |
+          python - <<'PY'
+          import datetime
+          import json
+          import urllib.request
+          import xml.etree.ElementTree as ET
+          from zoneinfo import ZoneInfo
+
+          url = "https://menu.matildaplatform.com/rss?displayMode=Day&distributorId=684ae3739eb9066bde5e1de9&lang=sv"
+          today = datetime.datetime.now(ZoneInfo("Europe/Stockholm")).date().isoformat()
+          request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              root = ET.fromstring(response.read())
+
+          items = root.findall("./channel/item")
+          selected = None
+          for item in items:
+              guid = item.findtext("guid", default="")
+              link = item.findtext("link", default="")
+              updated = next((node.text or "" for node in item if node.tag.endswith("updated")), "")
+              if today in guid or today in link or updated.startswith(today):
+                  selected = item
+                  break
+          if selected is None and len(items) == 1:
+              selected = items[0]
+          if selected is None:
+              raise RuntimeError("No lunch item found for " + today)
+
+          meal = selected.findtext("description", default="").strip()
+          if meal.lower().startswith("dagens"):
+              meal = meal[6:].strip()
+          meal = " ".join(meal.split())
+          with open("meal.json", "w", encoding="utf-8") as output:
+              json.dump({"date": today, "meal": meal}, output, ensure_ascii=False)
+          print("Lunch data prepared for", today)
+          PY
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
