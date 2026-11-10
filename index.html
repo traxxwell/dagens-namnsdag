@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dagens namnsdag</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; }
+    body {
+      display: grid; place-items: center; overflow: hidden;
+      background: #102b46; color: #fff;
+      font-family: Arial, Helvetica, sans-serif; text-align: center;
+    }
+    main { width: 100%; padding: 2rem; }
+    .date { font-size: clamp(1rem, 2.8vw, 2rem); opacity: .82; margin-bottom: 1.3rem; }
+    .label { font-size: clamp(1rem, 2.4vw, 1.7rem); letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
+    #names { font-size: clamp(2.5rem, 8vw, 7rem); font-weight: 700; line-height: 1.08; margin-top: .5rem; overflow-wrap: anywhere; }
+    #status { font-size: .85rem; opacity: .55; margin-top: 1.6rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="date" id="date"></div>
+    <div class="label">Dagens namnsdag</div>
+    <div id="names" aria-live="polite">Hämtar…</div>
+    <div id="status"></div>
+  </main>
+  <script>
+    const API = "https://namnsdag.tammergard.se/api/v1/today?countryCode=SE";
+    const dateEl = document.getElementById("date");
+    const namesEl = document.getElementById("names");
+    const statusEl = document.getElementById("status");
+
+    function getSwedishDate() {
+      return new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Europe/Stockholm", weekday: "long", year: "numeric",
+        month: "long", day: "numeric"
+      }).format(new Date());
+    }
+    function extractNames(data) {
+      if (Array.isArray(data)) return data.map(x => typeof x === "string" ? x : x?.name || x?.names).flat().filter(Boolean);
+      const candidates = data?.names ?? data?.nameDays ?? data?.namedays ?? data?.data ?? data?.result;
+      if (Array.isArray(candidates)) return candidates.map(x => typeof x === "string" ? x : x?.name || x?.names).flat().filter(Boolean);
+      if (typeof candidates === "string") return [candidates];
+      if (typeof data?.name === "string") return [data.name];
+      return [];
+    }
+    async function update() {
+      dateEl.textContent = getSwedishDate();
+      try {
+        const response = await fetch(API, { cache: "no-store" });
+        if (!response.ok) throw new Error("API-svar " + response.status);
+        const data = await response.json();
+        const names = extractNames(data);
+        namesEl.textContent = names.length ? names.join(" & ") : "Ingen namnsdag hittades";
+        statusEl.textContent = "";
+      } catch (error) {
+        namesEl.textContent = "Kunde inte hämta namnsdag";
+        statusEl.textContent = "Kontrollera internetanslutningen";
+      }
+    }
+    update();
+    setInterval(update, 10 * 60 * 1000);
+    setInterval(() => { dateEl.textContent = getSwedishDate(); }, 60 * 1000);
+  </script>
+</body>
+</html>
