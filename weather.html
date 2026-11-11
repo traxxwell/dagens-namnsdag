@@ -14,8 +14,8 @@
       display: grid;
       place-items: center;
       overflow: hidden;
-      background: #274C77;
-      color: #A3CEF1;
+      background: var(--day-background, #274C77);
+      color: var(--day-text, #A3CEF1);
       font-family: "Quicksand", sans-serif;
     }
     main {
@@ -38,6 +38,15 @@
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
+    body::after {
+      content: "";
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4px;
+      background: var(--day-primary, #A3CEF1);
+    }
   </style>
 </head>
 <body>
@@ -45,6 +54,7 @@
     <span id="icon" role="img" aria-label="Väder">⛅</span>
     <span id="temperature">--°</span>
   </main>
+  <script src="./theme.js"></script>
   <script>
     // Tystberga, Södermanland
     const LATITUDE = 58.848;
