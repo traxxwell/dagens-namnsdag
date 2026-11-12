@@ -54,7 +54,7 @@
         if (!response.ok) throw new Error("API-svar " + response.status);
         const data = await response.json();
         const names = extractNames(data);
-        namesEl.textContent = names.length ? names.join("\\n") : "Ingen namnsdag hittades";
+        namesEl.textContent = names.length ? names.join("\n") : "Ingen namnsdag hittades";
         statusEl.textContent = "";
       } catch (error) {
         namesEl.textContent = "Kunde inte hämta namnsdag";
