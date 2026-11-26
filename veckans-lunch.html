@@ -45,9 +45,18 @@
       .then(data => {
         const meals = Array.isArray(data.meals) ? data.meals : [];
         if (!meals.length) throw Error("Ingen matsedel");
-        daysEl.innerHTML = meals.map(item =>
-          '<article class="day"><div class="weekday">' + item.weekday + (item.date ? " " + item.date : "") + '</div><div class="meal">' + item.meal + '</div></article>'
-        ).join("");
+        meals.forEach(item => {
+          const article = document.createElement("article");
+          article.className = "day";
+          const weekday = document.createElement("div");
+          weekday.className = "weekday";
+          weekday.textContent = item.weekday + (item.date ? " " + item.date : "");
+          const meal = document.createElement("div");
+          meal.className = "meal";
+          meal.textContent = item.meal;
+          article.append(weekday, meal);
+          daysEl.appendChild(article);
+        });
         statusEl.textContent = "";
       })
       .catch(() => { statusEl.textContent = "Veckans matsedel är inte publicerad ännu. Försök igen senare."; });
