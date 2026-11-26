@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#274C77">
+  <meta name="description" content="Dagens namnsdag och lunch på Tystberga skola.">
+  <title>Namnsdag & lunch – Tystberga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --blue:#274C77; --text:#A3CEF1; --primary:#6096BA; --paper:#f5f8fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; padding: max(22px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); background:var(--paper); color:var(--blue); font-family:"Quicksand",sans-serif; display:flex; justify-content:center; align-items:center; }
+    main { width:min(100%,480px); }
+    header { text-align:center; margin-bottom:22px; }
+    .eyebrow { font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; opacity:.65; }
+    h1 { margin:7px 0 0; font-size:clamp(25px,7vw,34px); font-weight:700; letter-spacing:-.04em; }
+    .date { margin-top:8px; font-size:14px; font-weight:600; opacity:.65; }
+    .panel { background:var(--blue); color:white; border-radius:24px; padding:25px 22px; text-align:center; box-shadow:0 12px 30px #274c7718; position:relative; overflow:hidden; }
+    .panel + .panel { margin-top:14px; }
+    .panel:after { content:""; position:absolute; bottom:0; left:0; right:0; height:5px; background:var(--primary); }
+    .label { color:var(--text); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .value { margin:12px 0 0; font-size:clamp(25px,7vw,35px); font-weight:700; line-height:1.2; overflow-wrap:anywhere; white-space:pre-line; }
+    .meal { font-size:clamp(21px,5.8vw,29px); }
+    .school { margin-top:12px; font-size:13px; font-weight:600; color:var(--text); opacity:.85; }
+    .status { margin-top:16px; min-height:18px; text-align:center; font-size:12px; font-weight:600; opacity:.55; }
+    .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:#e2edf6; color:var(--blue); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Tystberga skola</div>
+      <h1>Namnsdag & lunch</h1>
+      <div class="date" id="date">Hämtar dagens datum…</div>
+    </header>
+    <section class="panel" aria-live="polite">
+      <div class="label">Namnsdag</div>
+      <div class="value" id="names">Hämtar…</div>
+    </section>
+    <section class="panel" aria-live="polite">
+      <div class="label">Dagens lunch</div>
+      <div class="value meal" id="meal">Hämtar…</div>
+      <div class="school">Tystberga skola</div>
+    </section>
+    <div class="status" id="status"></div>
+    <button class="refresh" type="button" id="refresh">Uppdatera</button>
+  </main>
+  <script>
+    const namesEl = document.getElementById("names");
+    const mealEl = document.getElementById("meal");
+    const statusEl = document.getElementById("status");
+    const dateEl = document.getElementById("date");
+
+    function todayInSweden() {
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Stockholm", year:"numeric", month:"2-digit", day:"2-digit" }).formatToParts(new Date());
+      const get = type => parts.find(p => p.type === type).value;
+      return get("year") + "-" + get("month") + "-" + get("day");
+    }
+    function extractNames(data) {
+      if (Array.isArray(data)) return data.map(x => typeof x === "string" ? x : x?.name || x?.names).flat().filter(Boolean);
+      const candidates = data?.names ?? data?.nameDays ?? data?.namedays ?? data?.data ?? data?.result;
+      if (Array.isArray(candidates)) return candidates.map(x => typeof x === "string" ? x : x?.name || x?.names).flat().filter(Boolean);
+      if (typeof candidates === "string") return [candidates];
+      if (typeof data?.name === "string") return [data.name];
+      return [];
+    }
+    async function update() {
+      statusEl.textContent = "";
+      dateEl.textContent = new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", weekday:"long", day:"numeric", month:"long" }).format(new Date());
+      const tasks = [
+        fetch("https://namnsdag.tammergard.se/api/v1/today?countryCode=SE", { cache:"no-store" })
+          .then(r => { if (!r.ok) throw Error(); return r.json(); })
+          .then(data => { const names = extractNames(data); namesEl.textContent = names.length ? names.join(" & ") : "Ingen namnsdag hittades"; })
+          .catch(() => { namesEl.textContent = "Kunde inte hämta namnsdag"; }),
+        fetch("./meal.json?t=" + Date.now(), { cache:"no-store" })
+          .then(r => { if (!r.ok) throw Error(); return r.json(); })
+          .then(data => { if (data.date !== todayInSweden()) throw Error(); mealEl.textContent = data.meal || "Ingen lunchinformation hittades"; })
+          .catch(() => { mealEl.textContent = "Dagens lunch uppdateras…"; })
+      ];
+      await Promise.all(tasks);
+      statusEl.textContent = "Senast kontrollerad " + new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", hour:"2-digit", minute:"2-digit" }).format(new Date());
+    }
+    document.getElementById("refresh").addEventListener("click", update);
+    update();
+    setInterval(update, 10 * 60 * 1000);
+  </script>
+</body>
+</html>
