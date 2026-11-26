@@ -26,7 +26,8 @@
     .meal { font-size:clamp(21px,5.8vw,29px); }
     .school { margin-top:12px; font-size:13px; font-weight:600; color:var(--text); opacity:.85; }
     .status { margin-top:16px; min-height:18px; text-align:center; font-size:12px; font-weight:600; opacity:.55; }
-    .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; cursor:pointer; }\n    .credit { margin:13px auto 0; text-align:center; font-size:11px; font-weight:600; opacity:.65; }
+    .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
+    .credit { margin:13px auto 0; text-align:center; font-size:11px; font-weight:600; opacity:.65; }
   </style>
 </head>
 <body>
@@ -45,7 +46,8 @@
       <div class="value meal" id="meal">Hämtar…</div>
     </section>
     <div class="status" id="status"></div>
-    <button class="refresh" type="button" id="refresh">Uppdatera</button>\n    <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
+    <button class="refresh" type="button" id="refresh">Uppdatera</button>
+    <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
   </main>
   <script>
     const namesEl = document.getElementById("names");
