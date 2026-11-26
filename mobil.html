@@ -10,23 +10,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root { --blue:#274C77; --text:#A3CEF1; --primary:#6096BA; --paper:#f5f8fb; }
+    :root { --day-background:#274C77; --day-text:#A3CEF1; --day-primary:#A3CEF1; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100svh; padding: max(22px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); background:var(--paper); color:var(--blue); font-family:"Quicksand",sans-serif; display:flex; justify-content:center; align-items:center; }
+    body { margin:0; min-height:100svh; padding: max(22px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); background:var(--day-background); color:var(--day-text); font-family:"Quicksand",sans-serif; display:flex; justify-content:center; align-items:center; }
     main { width:min(100%,480px); }
     header { text-align:center; margin-bottom:22px; }
     .eyebrow { font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; opacity:.65; }
     h1 { margin:7px 0 0; font-size:clamp(25px,7vw,34px); font-weight:700; letter-spacing:-.04em; }
     .date { margin-top:8px; font-size:14px; font-weight:600; opacity:.65; }
-    .panel { background:var(--blue); color:white; border-radius:24px; padding:25px 22px; text-align:center; box-shadow:0 12px 30px #274c7718; position:relative; overflow:hidden; }
+    .panel { background:color-mix(in srgb, var(--day-text) 10%, var(--day-background)); color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 22%, transparent); border-radius:24px; padding:25px 22px; text-align:center; box-shadow:0 12px 30px #00000012; position:relative; overflow:hidden; }
     .panel + .panel { margin-top:14px; }
-    .panel:after { content:""; position:absolute; bottom:0; left:0; right:0; height:5px; background:var(--primary); }
-    .label { color:var(--text); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+    .panel:after { content:""; position:absolute; bottom:0; left:0; right:0; height:5px; background:var(--day-primary); }
+    .label { color:var(--day-text); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
     .value { margin:12px 0 0; font-size:clamp(25px,7vw,35px); font-weight:700; line-height:1.2; overflow-wrap:anywhere; white-space:pre-line; }
     .meal { font-size:clamp(21px,5.8vw,29px); }
     .school { margin-top:12px; font-size:13px; font-weight:600; color:var(--text); opacity:.85; }
     .status { margin-top:16px; min-height:18px; text-align:center; font-size:12px; font-weight:600; opacity:.55; }
-    .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:#e2edf6; color:var(--blue); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
+    .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; cursor:pointer; }\n    .credit { margin:13px auto 0; text-align:center; font-size:11px; font-weight:600; opacity:.65; }
   </style>
 </head>
 <body>
@@ -46,7 +46,7 @@
       <div class="school">Tystberga skola</div>
     </section>
     <div class="status" id="status"></div>
-    <button class="refresh" type="button" id="refresh">Uppdatera</button>
+    <button class="refresh" type="button" id="refresh">Uppdatera</button>\n    <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
   </main>
   <script>
     const namesEl = document.getElementById("names");
