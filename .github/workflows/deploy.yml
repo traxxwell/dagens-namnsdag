@@ -71,13 +71,21 @@ jobs:
 
           today = datetime.datetime.now(ZoneInfo("Europe/Stockholm")).date()
           monday = today - datetime.timedelta(days=today.weekday())
-          wanted = {monday + datetime.timedelta(days=i): ["Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag"][i] for i in range(5)}
+          weekdays = ["Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag"]
+          wanted = {monday + datetime.timedelta(days=i): weekdays[i] for i in range(5)}
           url = "https://menu.matildaplatform.com/rss?displayMode=Week&distributorId=684ae3739eb9066bde5e1de9&lang=sv"
           request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
           with urllib.request.urlopen(request, timeout=30) as response:
               root = ET.fromstring(response.read())
 
-          meals = []
+          grouped = {}
+          day_names = {name.lower(): i for i, name in enumerate(weekdays)}
+          def clean(value):
+              value = re.sub(r"<br\s*/?>", " ", value or "", flags=re.I)
+              value = re.sub(r"</(?:p|div|li)>", " ", value, flags=re.I)
+              value = re.sub(r"<[^>]+>", " ", value)
+              return html.unescape(" ".join(value.split())).strip()
+
           for item in root.findall("./channel/item"):
               fields = [item.findtext(tag, default="") for tag in ("guid", "link", "title", "pubDate")]
               fields += [node.text or "" for node in item if node.tag.endswith("updated")]
@@ -90,21 +98,32 @@ jobs:
                   if found:
                       date = datetime.date(int(found.group(3)), int(found.group(2)), int(found.group(1)))
                   else:
-                      day_names = {"måndag": 0, "tisdag": 1, "onsdag": 2, "torsdag": 3, "fredag": 4}
                       day_match = re.search(r"\b(måndag|tisdag|onsdag|torsdag|fredag)\b", text.lower())
                       if not day_match:
                           continue
                       date = monday + datetime.timedelta(days=day_names[day_match.group(1)])
               if date not in wanted:
                   continue
-              description = item.findtext("description", default="").strip()
-              description = re.sub(r"<[^>]+>", " ", description)
-              description = html.unescape(" ".join(description.split()))
-              if description.lower().startswith("dagens"):
-                  description = description[6:].strip()
-              meals.append({"date": date.strftime("%d/%m"), "weekday": wanted[date], "meal": description})
 
-          meals.sort(key=lambda item: ["Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag"].index(item["weekday"]))
+              title = clean(item.findtext("title", default=""))
+              description = clean(item.findtext("description", default=""))
+              description = re.sub(r"^dagens\s*", "", description, flags=re.I).strip()
+              is_side = bool(re.search(r"tillbehör", title + " " + description, re.I))
+              description = re.sub(r"^tillbehör\s*[:\-]?\s*", "", description, flags=re.I).strip()
+              entry = grouped.setdefault(date, {"date": date.strftime("%d/%m"), "weekday": wanted[date], "meal": "", "accessories": []})
+              if is_side:
+                  if description:
+                      entry["accessories"].append(description)
+              elif description:
+                  if entry["meal"]:
+                      entry["meal"] += " • " + description
+                  else:
+                      entry["meal"] = description
+
+          meals = list(grouped.values())
+          meals.sort(key=lambda item: weekdays.index(item["weekday"]))
+          for item in meals:
+              item["accessories"] = " • ".join(dict.fromkeys(item["accessories"]))
           with open("weeklymeal.json", "w", encoding="utf-8") as output:
               json.dump({"week_start": monday.isoformat(), "meals": meals}, output, ensure_ascii=False)
           print("Weekly lunch entries prepared:", len(meals))
