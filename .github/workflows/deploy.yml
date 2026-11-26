@@ -112,8 +112,11 @@ jobs:
               description = re.sub(r"^tillbehör\s*[:\-]?\s*", "", description, flags=re.I).strip()
               entry = grouped.setdefault(date, {"date": date.strftime("%d/%m"), "weekday": wanted[date], "meal": "", "accessories": []})
               if is_side:
-                  if description:
-                      entry["accessories"].append(description)
+                  side_text = description or title
+                  side_text = re.sub(r"^(?:måndag|tisdag|onsdag|torsdag|fredag)\\s*", "", side_text, flags=re.I)
+                  side_text = re.sub(r"^tillbehör\\s*[:\\-]?\\s*", "", side_text, flags=re.I).strip()
+                  if side_text:
+                      entry["accessories"].append(side_text)
               elif description:
                   if entry["meal"]:
                       entry["meal"] += " • " + description
