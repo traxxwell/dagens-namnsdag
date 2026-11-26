@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#274C77">
+  <title>Veckans lunch – Tystberga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --day-background:#274C77; --day-text:#A3CEF1; --day-primary:#A3CEF1; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; padding:max(22px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom)); background:var(--day-background); color:var(--day-text); font-family:"Quicksand",sans-serif; display:flex; justify-content:center; align-items:center; }
+    main { width:min(100%,480px); }
+    header { text-align:center; margin-bottom:22px; }
+    .eyebrow { font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; opacity:.65; }
+    h1 { margin:7px 0 0; font-size:clamp(25px,7vw,34px); font-weight:700; letter-spacing:-.04em; }
+    .sub { margin-top:8px; font-size:14px; font-weight:600; opacity:.65; }
+    .day { background:color-mix(in srgb,var(--day-text) 10%,var(--day-background)); border:1px solid color-mix(in srgb,var(--day-text) 22%,transparent); border-radius:20px; padding:18px 20px; margin-top:12px; position:relative; overflow:hidden; }
+    .day:after { content:""; position:absolute; bottom:0; left:0; right:0; height:4px; background:var(--day-primary); }
+    .weekday { font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; opacity:.7; }
+    .meal { margin-top:8px; font-size:clamp(18px,5vw,25px); font-weight:700; line-height:1.25; overflow-wrap:anywhere; }
+    .status { margin:18px 0; text-align:center; font-size:13px; font-weight:600; opacity:.65; }
+    .back { display:block; margin:18px auto 0; border-radius:999px; padding:12px 20px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; text-decoration:none; text-align:center; width:fit-content; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">Tystberga skola</div>
+      <h1>Veckans lunch</h1>
+      <div class="sub" id="week">Måndag–Onsdag</div>
+    </header>
+    <section id="days" aria-live="polite"></section>
+    <div class="status" id="status">Hämtar veckans matsedel…</div>
+    <a class="back" href="./mobil.html">← Tillbaka</a>
+  </main>
+  <script src="./theme.js"></script>
+  <script>
+    const daysEl = document.getElementById("days");
+    const statusEl = document.getElementById("status");
+    fetch("./weeklymeal.json?t=" + Date.now(), { cache:"no-store" })
+      .then(response => { if (!response.ok) throw Error(); return response.json(); })
+      .then(data => {
+        const meals = Array.isArray(data.meals) ? data.meals : [];
+        if (!meals.length) throw Error("Ingen matsedel");
+        daysEl.innerHTML = meals.map(item =>
+          '<article class="day"><div class="weekday">' + item.weekday + (item.date ? " " + item.date : "") + '</div><div class="meal">' + item.meal + '</div></article>'
+        ).join("");
+        statusEl.textContent = "";
+      })
+      .catch(() => { statusEl.textContent = "Veckans matsedel är inte publicerad ännu. Försök igen senare."; });
+  </script>
+</body>
+</html>
