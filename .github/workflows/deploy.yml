@@ -82,11 +82,11 @@ jobs:
               fields = [item.findtext(tag, default="") for tag in ("guid", "link", "title", "pubDate")]
               fields += [node.text or "" for node in item if node.tag.endswith("updated")]
               text = " ".join(fields)
-              found = re.search(r"\\b(20\\d{2})[-/.](\\d{1,2})[-/.](\\d{1,2})\\b", text)
+              found = re.search(r"\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b", text)
               if found:
                   date = datetime.date(int(found.group(1)), int(found.group(2)), int(found.group(3)))
               else:
-                  found = re.search(r"\\b(\\d{1,2})[-/.](\\d{1,2})[-/.](20\\d{2})\\b", text)
+                  found = re.search(r"\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b", text)
                   if not found:
                       continue
                   date = datetime.date(int(found.group(3)), int(found.group(2)), int(found.group(1)))
