@@ -71,7 +71,8 @@
     }
     async function update() {
       statusEl.textContent = "";
-      dateEl.textContent = new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", weekday:"long", day:"numeric", month:"long" }).format(new Date());
+      const formattedDate = new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", weekday:"long", day:"numeric", month:"long" }).format(new Date());
+      dateEl.textContent = formattedDate.charAt(0).toLocaleUpperCase("sv-SE") + formattedDate.slice(1);
       const tasks = [
         fetch("https://namnsdag.tammergard.se/api/v1/today?countryCode=SE", { cache:"no-store" })
           .then(r => { if (!r.ok) throw Error(); return r.json(); })
