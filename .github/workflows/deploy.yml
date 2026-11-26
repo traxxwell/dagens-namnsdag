@@ -87,9 +87,14 @@ jobs:
                   date = datetime.date(int(found.group(1)), int(found.group(2)), int(found.group(3)))
               else:
                   found = re.search(r"\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b", text)
-                  if not found:
-                      continue
-                  date = datetime.date(int(found.group(3)), int(found.group(2)), int(found.group(1)))
+                  if found:
+                      date = datetime.date(int(found.group(3)), int(found.group(2)), int(found.group(1)))
+                  else:
+                      day_names = {"måndag": 0, "tisdag": 1, "onsdag": 2}
+                      day_match = re.search(r"\b(måndag|tisdag|onsdag)\b", text.lower())
+                      if not day_match:
+                          continue
+                      date = monday + datetime.timedelta(days=day_names[day_match.group(1)])
               if date not in wanted:
                   continue
               description = item.findtext("description", default="").strip()
