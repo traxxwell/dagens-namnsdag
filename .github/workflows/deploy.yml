@@ -104,7 +104,7 @@ jobs:
                   description = description[6:].strip()
               meals.append({"date": date.strftime("%d/%m"), "weekday": wanted[date], "meal": description})
 
-          meals.sort(key=lambda item: datetime.datetime.strptime(item["date"], "%d/%m").date().replace(year=today.year))
+          meals.sort(key=lambda item: ["Måndag", "Tisdag", "Onsdag"].index(item["weekday"]))
           with open("weeklymeal.json", "w", encoding="utf-8") as output:
               json.dump({"week_start": monday.isoformat(), "meals": meals}, output, ensure_ascii=False)
           print("Weekly lunch entries prepared:", len(meals))
