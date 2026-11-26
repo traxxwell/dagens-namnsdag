@@ -89,9 +89,24 @@
       await Promise.all(tasks);
       statusEl.textContent = "Senast kontrollerad " + new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", hour:"2-digit", minute:"2-digit" }).format(new Date());
     }
+    function scheduleMidnightUpdate() {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-CA", { timeZone:"Europe/Stockholm", year:"numeric", month:"2-digit", day:"2-digit" }).formatToParts(now);
+      const get = type => Number(parts.find(p => p.type === type).value);
+      const nextDayUtc = Date.UTC(get("year"), get("month") - 1, get("day") + 1);
+      const offsetParts = new Intl.DateTimeFormat("en-US", { timeZone:"Europe/Stockholm", timeZoneName:"longOffset" }).formatToParts(new Date(nextDayUtc + 12 * 60 * 60 * 1000));
+      const offsetText = offsetParts.find(p => p.type === "timeZoneName").value;
+      const match = offsetText.match(/GMT([+-])(\\d{2}):(\\d{2})/);
+      const offsetMinutes = match ? (match[1] === "+" ? 1 : -1) * (Number(match[2]) * 60 + Number(match[3])) : 0;
+      const nextMidnight = nextDayUtc - offsetMinutes * 60 * 1000;
+      setTimeout(async () => {
+        await update();
+        scheduleMidnightUpdate();
+      }, Math.max(0, nextMidnight - Date.now()));
+    }
     document.getElementById("refresh").addEventListener("click", update);
     update();
-    setInterval(update, 10 * 60 * 1000);
+    scheduleMidnightUpdate();
   </script>
 </body>
 </html>
