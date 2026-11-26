@@ -123,7 +123,6 @@ jobs:
                   else:
                       entry["meal"] = description
 
-          print("RSS weekly item debug:", [(item.findtext("title", default=""), item.findtext("description", default=""), item.findtext("guid", default="")) for item in root.findall("./channel/item")])
           meals = list(grouped.values())
           meals.sort(key=lambda item: weekdays.index(item["weekday"]))
           for item in meals:
