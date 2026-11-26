@@ -72,7 +72,10 @@
     async function update() {
       statusEl.textContent = "";
       const formattedDate = new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Stockholm", weekday:"long", day:"numeric", month:"long" }).format(new Date());
-      dateEl.textContent = formattedDate.charAt(0).toLocaleUpperCase("sv-SE") + formattedDate.slice(1);
+      const dateParts = formattedDate.split(" ");
+      dateParts[0] = dateParts[0].charAt(0).toLocaleUpperCase("sv-SE") + dateParts[0].slice(1);
+      dateParts[dateParts.length - 1] = dateParts[dateParts.length - 1].charAt(0).toLocaleUpperCase("sv-SE") + dateParts[dateParts.length - 1].slice(1);
+      dateEl.textContent = dateParts.join(" ");
       const tasks = [
         fetch("https://namnsdag.tammergard.se/api/v1/today?countryCode=SE", { cache:"no-store" })
           .then(r => { if (!r.ok) throw Error(); return r.json(); })
