@@ -39,6 +39,12 @@
     .guide ol { padding-left:22px; }
     .guide .refresh { width:100%; }
     .guide .guide-close { background:transparent; color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 45%, transparent); }
+    .guide-link-box { margin:18px 0 8px; padding:14px; border-radius:16px; background:color-mix(in srgb, var(--day-text) 9%, var(--day-background)); border:1px solid color-mix(in srgb, var(--day-text) 25%, transparent); }
+    .guide-link-box label { display:block; margin-bottom:8px; font-size:13px; font-weight:700; }
+    .guide-link-row { display:flex; gap:8px; align-items:stretch; }
+    .guide-link-row input { min-width:0; flex:1; border:1px solid color-mix(in srgb, var(--day-text) 35%, transparent); border-radius:10px; padding:10px; background:var(--day-background); color:var(--day-text); font:600 12px "Quicksand",sans-serif; }
+    .guide-link-row button { border:0; border-radius:10px; padding:10px 12px; background:var(--day-primary); color:var(--day-background); font:700 13px "Quicksand",sans-serif; cursor:pointer; }
+    .copy-status { min-height:18px; margin:8px 0 0; font-size:12px; font-weight:700; }
 
   </style>
 </head>
@@ -67,6 +73,14 @@
         <h2 id="guideTitle">Lägg till på hemskärmen</h2>
         <p id="guideIntro">Följ stegen nedan för att skapa en genväg till Namnsdag & lunch.</p>
         <div id="guideSteps"></div>
+        <div class="guide-link-box">
+          <label for="pageLink">Öppna länken i webbläsaren om du kom hit från Messenger</label>
+          <div class="guide-link-row">
+            <input id="pageLink" type="url" readonly aria-label="Länk till Namnsdag och lunch">
+            <button type="button" id="copyPageLink">Kopiera</button>
+          </div>
+          <p class="copy-status" id="copyStatus" aria-live="polite">Kopiera länken och klistra in den i Safari eller Chrome.</p>
+        </div>
         <button class="refresh" type="button" id="nativeInstall" hidden>Lägg till på hemskärmen</button>
         <button class="refresh guide-close" type="button" id="closeInstallGuide">Stäng</button>
       </div>
@@ -138,17 +152,36 @@
       nativeInstallBtn.hidden = false;
     });
     function openInstallGuide() {
-      const ua = navigator.userAgent;
-      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const ua = navigator.userAgent || "";
+      const platform = navigator.platform || "";
+      const isIOS = /iPhone|iPad|iPod/i.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const isAndroid = /Android/i.test(ua);
-      if (isIOS) {
-        stepsEl.innerHTML = '<ol><li>Öppna sidan i <strong>Safari</strong> (inte i en app-webbläsare).</li><li>Tryck på <strong>Dela</strong> – fyrkanten med pilen uppåt.</li><li>Välj <strong>Lägg till på hemskärmen</strong>. Om valet inte syns, scrolla i listan.</li><li>Tryck på <strong>Lägg till</strong> uppe till höger.</li></ol><p>Nu finns genvägen på din hemskärm.</p>';
+      const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|DdgA|DuckDuckGo|GSA|FBAN|FBAV|Instagram/i.test(ua);
+      const isChromeAndroid = isAndroid && /Chrome\/|CriOS/i.test(ua) && !/EdgA|OPR|SamsungBrowser/i.test(ua);
+      const linkInput = document.getElementById("pageLink");
+      const copyStatus = document.getElementById("copyStatus");
+      linkInput.value = window.location.href;
+      copyStatus.textContent = "Kopiera länken och klistra in den i Safari eller Chrome.";
+
+      if (isIOS && isSafari) {
+        document.getElementById("guideIntro").textContent = "Du använder Safari. Lägg till sidan på hemskärmen så hittar du lunch och namnsdag snabbt.";
+        stepsEl.innerHTML = '<ol><li>Tryck på <strong>Dela</strong> – fyrkanten med pilen uppåt.</li><li>Scrolla vid behov och välj <strong>Lägg till på hemskärmen</strong>.</li><li>Tryck på <strong>Lägg till</strong> uppe till höger.</li></ol><p>Klart! Ikonen finns nu på hemskärmen.</p>';
         nativeInstallBtn.hidden = true;
+      } else if (isIOS) {
+        document.getElementById("guideIntro").textContent = "Du verkar ha öppnat sidan i en app eller en annan webbläsare. För att lägga till den på iPhone/iPad behöver du öppna den i Safari.";
+        stepsEl.innerHTML = '<ol><li>Tryck på <strong>Kopiera</strong> här nedanför.</li><li>Öppna <strong>Safari</strong> och klistra in länken i adressfältet.</li><li>När sidan öppnats i Safari: tryck på <strong>Dela</strong>.</li><li>Välj <strong>Lägg till på hemskärmen</strong> och tryck sedan <strong>Lägg till</strong>.</li></ol><p>Om appen du kom från har valet <strong>Öppna i Safari</strong>, kan du använda det i stället.</p>';
+        nativeInstallBtn.hidden = true;
+      } else if (isAndroid && isChromeAndroid) {
+        document.getElementById("guideIntro").textContent = "Du använder Chrome på Android. Du kan lägga till sidan direkt från webbläsaren.";
+        stepsEl.innerHTML = '<ol><li>Tryck på <strong>Lägg till på hemskärmen</strong> nedan om knappen visas.</li><li>Annars tryck på <strong>⋮</strong> uppe till höger i Chrome.</li><li>Välj <strong>Installera app</strong> eller <strong>Lägg till på startskärmen</strong>.</li><li>Bekräfta.</li></ol>';
+        nativeInstallBtn.hidden = !installPromptEvent;
       } else if (isAndroid) {
-        stepsEl.innerHTML = '<ol><li>Tryck på knappen <strong>Lägg till på hemskärmen</strong> nedan om den visas.</li><li>Om ingen knapp visas: tryck på webbläsarens <strong>⋮ meny</strong> uppe till höger.</li><li>Välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li><li>Bekräfta genom att trycka på <strong>Lägg till</strong> eller <strong>Installera</strong>.</li></ol><p>Du hittar sedan genvägen på mobilens hemskärm.</p>';
+        document.getElementById("guideIntro").textContent = "Du verkar ha öppnat sidan i en app eller annan webbläsare. Öppna länken i Chrome för enklast installation.";
+        stepsEl.innerHTML = '<ol><li>Tryck på <strong>Kopiera</strong> här nedanför.</li><li>Öppna <strong>Chrome</strong> och klistra in länken i adressfältet.</li><li>Tryck på <strong>⋮</strong> och välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li><li>Bekräfta.</li></ol><p>Om appen du kom från erbjuder <strong>Öppna i webbläsare</strong>, går det också bra.</p>';
         nativeInstallBtn.hidden = !installPromptEvent;
       } else {
-        stepsEl.innerHTML = '<ol><li>Öppna sidan i webbläsaren på mobilen.</li><li>Öppna webbläsarens meny eller Dela-funktion.</li><li>Välj <strong>Lägg till på hemskärmen</strong> och bekräfta.</li></ol>';
+        document.getElementById("guideIntro").textContent = "Du kan spara sidan som ett bokmärke eller öppna den på mobilen för att lägga till den på hemskärmen.";
+        stepsEl.innerHTML = '<ol><li>Kopiera länken om du vill öppna sidan på mobilen.</li><li>På mobilen öppnar du länken i Safari (iPhone) eller Chrome (Android).</li><li>Använd webbläsarens Dela- eller menyknapp och välj <strong>Lägg till på hemskärmen</strong>.</li></ol>';
         nativeInstallBtn.hidden = !installPromptEvent;
       }
       guideEl.classList.add("open");
@@ -163,6 +196,27 @@
     window.openInstallGuide = openInstallGuide;
     document.getElementById("showInstallGuide").addEventListener("click", openInstallGuide);
     document.getElementById("closeInstallGuide").addEventListener("click", closeInstallGuide);
+    document.getElementById("copyPageLink").addEventListener("click", async () => {
+      const linkInput = document.getElementById("pageLink");
+      const copyStatus = document.getElementById("copyStatus");
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(linkInput.value);
+        } else {
+          linkInput.focus();
+          linkInput.select();
+          linkInput.setSelectionRange(0, linkInput.value.length);
+          const copied = document.execCommand("copy");
+          if (!copied) throw new Error("Copy unavailable");
+        }
+        copyStatus.textContent = "Länken är kopierad! Klistra in den i Safari eller Chrome.";
+      } catch (error) {
+        linkInput.focus();
+        linkInput.select();
+        linkInput.setSelectionRange(0, linkInput.value.length);
+        copyStatus.textContent = "Markera länken ovan, kopiera och klistra in den i webbläsaren.";
+      }
+    });
     guideEl.addEventListener("click", event => { if (event.target === guideEl) closeInstallGuide(); });
     nativeInstallBtn.addEventListener("click", async () => {
       if (!installPromptEvent) return;
