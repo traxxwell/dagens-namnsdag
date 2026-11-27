@@ -81,7 +81,7 @@
           </div>
           <p class="copy-status" id="copyStatus" aria-live="polite">Kopiera länken och klistra in den i Safari eller Chrome.</p>
         </div>
-        <button class="refresh" type="button" id="nativeInstall" hidden>Lägg till på hemskärmen</button>
+
         <button class="refresh guide-close" type="button" id="closeInstallGuide">Stäng</button>
       </div>
     </div>
@@ -142,15 +142,8 @@
       }, Math.max(0, nextMidnight - Date.now()));
     }
 
-    let installPromptEvent = null;
     const guideEl = document.getElementById("installGuide");
     const stepsEl = document.getElementById("guideSteps");
-    const nativeInstallBtn = document.getElementById("nativeInstall");
-    window.addEventListener("beforeinstallprompt", event => {
-      event.preventDefault();
-      installPromptEvent = event;
-      nativeInstallBtn.hidden = false;
-    });
     function openInstallGuide() {
       const ua = navigator.userAgent || "";
       const platform = navigator.platform || "";
@@ -167,23 +160,23 @@
       if (isIOS && isSafari) {
         document.getElementById("guideIntro").textContent = "Du använder Safari. Lägg till sidan på hemskärmen så hittar du lunch och namnsdag snabbt.";
         stepsEl.innerHTML = '<ol><li>Tryck på <strong>Dela</strong> – fyrkanten med pilen uppåt.</li><li>Scrolla vid behov och välj <strong>Lägg till på hemskärmen</strong>.</li><li>Tryck på <strong>Lägg till</strong> uppe till höger.</li></ol><p>Klart! Ikonen finns nu på hemskärmen.</p>';
-        nativeInstallBtn.hidden = true;
+
       } else if (isIOS) {
         document.getElementById("guideIntro").textContent = "Du verkar ha öppnat sidan i en app eller en annan webbläsare. För att lägga till den på iPhone/iPad behöver du öppna den i Safari.";
         stepsEl.innerHTML = '<ol><li>Tryck på <strong>Kopiera</strong> här nedanför.</li><li>Öppna <strong>Safari</strong> och klistra in länken i adressfältet.</li><li>När sidan öppnats i Safari: tryck på <strong>Dela</strong>.</li><li>Välj <strong>Lägg till på hemskärmen</strong> och tryck sedan <strong>Lägg till</strong>.</li></ol><p>Om appen du kom från har valet <strong>Öppna i Safari</strong>, kan du använda det i stället.</p>';
-        nativeInstallBtn.hidden = true;
+
       } else if (isAndroid && isChromeAndroid) {
         document.getElementById("guideIntro").textContent = "Du använder Chrome på Android. Du kan lägga till sidan direkt från webbläsaren.";
-        stepsEl.innerHTML = '<ol><li>Tryck på <strong>Lägg till på hemskärmen</strong> nedan om knappen visas.</li><li>Annars tryck på <strong>⋮</strong> uppe till höger i Chrome.</li><li>Välj <strong>Installera app</strong> eller <strong>Lägg till på startskärmen</strong>.</li><li>Bekräfta.</li></ol>';
-        nativeInstallBtn.hidden = !installPromptEvent;
+        stepsEl.innerHTML = '<ol><li>Tryck på <strong>⋮</strong> uppe till höger i Chrome.</li><li>Välj <strong>Installera app</strong> eller <strong>Lägg till på startskärmen</strong>.</li><li>Bekräfta.</li></ol>';
+
       } else if (isAndroid) {
         document.getElementById("guideIntro").textContent = "Du verkar ha öppnat sidan i en app eller annan webbläsare. Öppna länken i Chrome för enklast installation.";
         stepsEl.innerHTML = '<ol><li>Tryck på <strong>Kopiera</strong> här nedanför.</li><li>Öppna <strong>Chrome</strong> och klistra in länken i adressfältet.</li><li>Tryck på <strong>⋮</strong> och välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li><li>Bekräfta.</li></ol><p>Om appen du kom från erbjuder <strong>Öppna i webbläsare</strong>, går det också bra.</p>';
-        nativeInstallBtn.hidden = !installPromptEvent;
+
       } else {
         document.getElementById("guideIntro").textContent = "Du kan spara sidan som ett bokmärke eller öppna den på mobilen för att lägga till den på hemskärmen.";
         stepsEl.innerHTML = '<ol><li>Kopiera länken om du vill öppna sidan på mobilen.</li><li>På mobilen öppnar du länken i Safari (iPhone) eller Chrome (Android).</li><li>Använd webbläsarens Dela- eller menyknapp och välj <strong>Lägg till på hemskärmen</strong>.</li></ol>';
-        nativeInstallBtn.hidden = !installPromptEvent;
+
       }
       guideEl.classList.add("open");
       guideEl.style.display = "flex";
@@ -219,14 +212,6 @@
       }
     });
     guideEl.addEventListener("click", event => { if (event.target === guideEl) closeInstallGuide(); });
-    nativeInstallBtn.addEventListener("click", async () => {
-      if (!installPromptEvent) return;
-      installPromptEvent.prompt();
-      await installPromptEvent.userChoice;
-      installPromptEvent = null;
-      nativeInstallBtn.hidden = true;
-      closeInstallGuide();
-    });
 
     document.getElementById("refresh").addEventListener("click", update);
     update();
