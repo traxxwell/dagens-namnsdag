@@ -29,6 +29,7 @@
     .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
     .refresh.secondary { margin-top:10px; background:transparent; color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 45%, transparent); }
     .credit { margin:16px auto 0; text-align:center; font-size:12px; font-weight:600; opacity:.55; }
+    .credit .heart { color:#ef4444; font-size:1.15em; }
     .install-cta { display:block; width:max-content; max-width:100%; margin:14px auto 0; border:1px solid color-mix(in srgb, var(--day-text) 38%, transparent); border-radius:999px; padding:11px 18px; background:color-mix(in srgb, var(--day-text) 12%, var(--day-background)); color:var(--day-text); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
     .install-cta:active { transform:scale(.99); }
     .guide-backdrop { position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center; padding:18px; background:#0009; }
@@ -67,7 +68,7 @@
     <div class="status" id="status"></div>
     <button class="refresh" type="button" id="refresh">Uppdatera</button>
     <button class="install-cta" type="button" id="showInstallGuide">Spara sidan</button>
-    <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
+    <div class="credit">Skapad med <span class="heart" aria-hidden="true">♥</span> av Tony Ejremar, 2026</div>
     <div class="guide-backdrop" id="installGuide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
       <div class="guide">
         <h2 id="guideTitle">Spara sidan</h2>
