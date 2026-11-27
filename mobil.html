@@ -160,7 +160,6 @@
       guideEl.style.display = "none";
       document.body.style.overflow = "";
     }
-    document.getElementById("showInstallGuide").addEventListener("click", openInstallGuide);
     document.getElementById("closeInstallGuide").addEventListener("click", closeInstallGuide);
     guideEl.addEventListener("click", event => { if (event.target === guideEl) closeInstallGuide(); });
     nativeInstallBtn.addEventListener("click", async () => {
