@@ -157,7 +157,8 @@
       const isIOS = /iPhone|iPad|iPod/i.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const isAndroid = /Android/i.test(ua);
       const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|DdgA|DuckDuckGo|GSA|FBAN|FBAV|Instagram/i.test(ua);
-      const isChromeAndroid = isAndroid && /Chrome\/|CriOS/i.test(ua) && !/EdgA|OPR|SamsungBrowser|FB_IAB|FBAN|FBAV|Messenger|; wv\)/i.test(ua);
+      const isAndroidWebView = /; *wv\)/i.test(ua) || /FB_IAB|FBAN|FBAV|Messenger/i.test(ua);
+      const isChromeAndroid = isAndroid && /Chrome\//i.test(ua) && !/EdgA|OPR|SamsungBrowser/i.test(ua) && !isAndroidWebView;
       const linkInput = document.getElementById("pageLink");
       const copyStatus = document.getElementById("copyStatus");
       linkInput.value = window.location.href;
