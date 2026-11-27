@@ -66,11 +66,11 @@
     <a class="refresh secondary" href="./veckans-lunch.html" style="text-decoration:none;text-align:center">Visa veckans lunch</a>
     <div class="status" id="status"></div>
     <button class="refresh" type="button" id="refresh">Uppdatera</button>
-    <button class="install-cta" type="button" id="showInstallGuide">Vill du lägga till denna sida?</button>
+    <button class="install-cta" type="button" id="showInstallGuide">Spara sidan</button>
     <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
     <div class="guide-backdrop" id="installGuide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
       <div class="guide">
-        <h2 id="guideTitle">Lägg till på hemskärmen</h2>
+        <h2 id="guideTitle">Spara sidan</h2>
         <p id="guideIntro">Följ stegen nedan för att skapa en genväg till Namnsdag & lunch.</p>
         <div id="guideSteps"></div>
         <div class="guide-link-box">
@@ -149,6 +149,7 @@
       const platform = navigator.platform || "";
       const isIOS = /iPhone|iPad|iPod/i.test(ua) || (platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const isAndroid = /Android/i.test(ua);
+      const isDesktop = !isIOS && !isAndroid;
       const isSafari = /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|DdgA|DuckDuckGo|GSA|FBAN|FBAV|Instagram/i.test(ua);
       const isAndroidWebView = /; *wv\)/i.test(ua) || /FB_IAB|FBAN|FBAV|Messenger/i.test(ua);
       const isChromeAndroid = isAndroid && /Chrome\//i.test(ua) && !/EdgA|OPR|SamsungBrowser/i.test(ua) && !isAndroidWebView;
@@ -157,7 +158,12 @@
       linkInput.value = window.location.href;
       copyStatus.textContent = "Kopiera länken och klistra in den i Safari eller Chrome.";
 
-      if (isIOS && isSafari) {
+      if (isDesktop) {
+        document.getElementById("guideIntro").textContent = "Vill du snabbt hitta sidan igen? Lägg till den som bokmärke i webbläsaren.";
+        const isMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(platform) || /Mac OS/i.test(ua);
+        const shortcut = isMac ? "⌘ + D" : "Ctrl + D";
+        stepsEl.innerHTML = '<p>Tryck på <strong>' + shortcut + '</strong> på tangentbordet för att bokmärka sidan.</p><p>Du kan också klicka på stjärnan i adressfältet (om den finns) och spara bokmärket.</p><p>Vill du öppna sidan på mobilen? Kopiera länken nedan och skicka den till dig själv.</p>';
+      } else if (isIOS && isSafari) {
         document.getElementById("guideIntro").textContent = "Du använder Safari. Lägg till sidan på hemskärmen så hittar du lunch och namnsdag snabbt.";
         stepsEl.innerHTML = '<ol><li>Tryck på <strong>Dela</strong> – fyrkanten med pilen uppåt.</li><li>Scrolla vid behov och välj <strong>Lägg till på hemskärmen</strong>.</li><li>Tryck på <strong>Lägg till</strong> uppe till höger.</li></ol><p>Klart! Ikonen finns nu på hemskärmen.</p>';
 
@@ -174,9 +180,8 @@
         stepsEl.innerHTML = '<ol><li>Tryck på <strong>Kopiera</strong> här nedanför.</li><li>Öppna <strong>Chrome</strong> och klistra in länken i adressfältet.</li><li>Tryck på <strong>⋮</strong> och välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li><li>Bekräfta.</li></ol><p>Om appen du kom från erbjuder <strong>Öppna i webbläsare</strong>, går det också bra.</p>';
 
       } else {
-        document.getElementById("guideIntro").textContent = "Du kan spara sidan som ett bokmärke eller öppna den på mobilen för att lägga till den på hemskärmen.";
-        stepsEl.innerHTML = '<ol><li>Kopiera länken om du vill öppna sidan på mobilen.</li><li>På mobilen öppnar du länken i Safari (iPhone) eller Chrome (Android).</li><li>Använd webbläsarens Dela- eller menyknapp och välj <strong>Lägg till på hemskärmen</strong>.</li></ol>';
-
+        document.getElementById("guideIntro").textContent = "Öppna sidan i webbläsaren och spara den på hemskärmen.";
+        stepsEl.innerHTML = '<ol><li>Kopiera länken om du öppnat sidan i en app.</li><li>Öppna länken i Safari (iPhone) eller Chrome (Android).</li><li>Använd webbläsarens Dela- eller menyknapp och välj <strong>Lägg till på hemskärmen</strong>.</li></ol>';
       }
       guideEl.classList.add("open");
       guideEl.style.display = "flex";
