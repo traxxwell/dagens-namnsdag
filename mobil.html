@@ -29,6 +29,17 @@
     .refresh { display:block; margin:14px auto 0; border:0; border-radius:999px; padding:11px 18px; background:var(--day-primary); color:var(--day-background); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
     .refresh.secondary { margin-top:10px; background:transparent; color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 45%, transparent); }
     .credit { margin:16px auto 0; text-align:center; font-size:12px; font-weight:600; opacity:.55; }
+    .install-cta { display:block; width:100%; margin:12px auto 0; border:1px solid color-mix(in srgb, var(--day-text) 38%, transparent); border-radius:999px; padding:13px 18px; background:color-mix(in srgb, var(--day-text) 12%, var(--day-background)); color:var(--day-text); font:700 14px "Quicksand",sans-serif; cursor:pointer; }
+    .install-cta:active { transform:scale(.99); }
+    .guide-backdrop { position:fixed; inset:0; z-index:20; display:none; align-items:center; justify-content:center; padding:18px; background:#0009; }
+    .guide-backdrop.open { display:flex; }
+    .guide { width:min(100%,440px); max-height: min(85svh,700px); overflow:auto; background:var(--day-background); color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 28%, transparent); border-radius:24px; padding:24px 20px; box-shadow:0 20px 60px #0005; }
+    .guide h2 { margin:0 0 10px; font-size:23px; }
+    .guide p, .guide li { font-size:15px; line-height:1.55; }
+    .guide ol { padding-left:22px; }
+    .guide .refresh { width:100%; }
+    .guide .guide-close { background:transparent; color:var(--day-text); border:1px solid color-mix(in srgb, var(--day-text) 45%, transparent); }
+
   </style>
 </head>
 <body>
@@ -49,7 +60,17 @@
     <a class="refresh secondary" href="./veckans-lunch.html" style="text-decoration:none;text-align:center">Visa veckans lunch</a>
     <div class="status" id="status"></div>
     <button class="refresh" type="button" id="refresh">Uppdatera</button>
+    <button class="install-cta" type="button" id="showInstallGuide">Vill du lägga till denna sida?</button>
     <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
+    <div class="guide-backdrop" id="installGuide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="guide">
+        <h2 id="guideTitle">Lägg till på hemskärmen</h2>
+        <p id="guideIntro">Följ stegen nedan för att skapa en genväg till Namnsdag & lunch.</p>
+        <div id="guideSteps"></div>
+        <button class="refresh" type="button" id="nativeInstall" hidden>Lägg till på hemskärmen</button>
+        <button class="refresh guide-close" type="button" id="closeInstallGuide">Stäng</button>
+      </div>
+    </div>
   </main>
   <script src="./theme.js"></script>
   <script>
@@ -106,7 +127,49 @@
         scheduleMidnightUpdate();
       }, Math.max(0, nextMidnight - Date.now()));
     }
-    document.getElementById("refresh").addEventListener("click", update);
+
+    let installPromptEvent = null;
+    const guideEl = document.getElementById("installGuide");
+    const stepsEl = document.getElementById("guideSteps");
+    const nativeInstallBtn = document.getElementById("nativeInstall");
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      installPromptEvent = event;
+      nativeInstallBtn.hidden = false;
+    });
+    function openInstallGuide() {
+      const ua = navigator.userAgent;
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+      if (isIOS) {
+        stepsEl.innerHTML = '<ol><li>Öppna sidan i <strong>Safari</strong> (inte i en app-webbläsare).</li><li>Tryck på <strong>Dela</strong> – fyrkanten med pilen uppåt.</li><li>Välj <strong>Lägg till på hemskärmen</strong>. Om valet inte syns, scrolla i listan.</li><li>Tryck på <strong>Lägg till</strong> uppe till höger.</li></ol><p>Nu finns genvägen på din hemskärm.</p>';
+        nativeInstallBtn.hidden = true;
+      } else if (isAndroid) {
+        stepsEl.innerHTML = '<ol><li>Tryck på knappen <strong>Lägg till på hemskärmen</strong> nedan om den visas.</li><li>Om ingen knapp visas: tryck på webbläsarens <strong>⋮ meny</strong> uppe till höger.</li><li>Välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li><li>Bekräfta genom att trycka på <strong>Lägg till</strong> eller <strong>Installera</strong>.</li></ol><p>Du hittar sedan genvägen på mobilens hemskärm.</p>';
+        nativeInstallBtn.hidden = !installPromptEvent;
+      } else {
+        stepsEl.innerHTML = '<ol><li>Öppna sidan i webbläsaren på mobilen.</li><li>Öppna webbläsarens meny eller Dela-funktion.</li><li>Välj <strong>Lägg till på hemskärmen</strong> och bekräfta.</li></ol>';
+        nativeInstallBtn.hidden = !installPromptEvent;
+      }
+      guideEl.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeInstallGuide() {
+      guideEl.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+    document.getElementById("showInstallGuide").addEventListener("click", openInstallGuide);
+    document.getElementById("closeInstallGuide").addEventListener("click", closeInstallGuide);
+    guideEl.addEventListener("click", event => { if (event.target === guideEl) closeInstallGuide(); });
+    nativeInstallBtn.addEventListener("click", async () => {
+      if (!installPromptEvent) return;
+      installPromptEvent.prompt();
+      await installPromptEvent.userChoice;
+      installPromptEvent = null;
+      nativeInstallBtn.hidden = true;
+      closeInstallGuide();
+    });
+\n    document.getElementById("refresh").addEventListener("click", update);
     update();
     scheduleMidnightUpdate();
   </script>
