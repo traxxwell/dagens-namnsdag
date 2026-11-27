@@ -60,7 +60,7 @@
     <a class="refresh secondary" href="./veckans-lunch.html" style="text-decoration:none;text-align:center">Visa veckans lunch</a>
     <div class="status" id="status"></div>
     <button class="refresh" type="button" id="refresh">Uppdatera</button>
-    <button class="install-cta" type="button" id="showInstallGuide">Vill du lägga till denna sida?</button>
+    <button class="install-cta" type="button" id="showInstallGuide" onclick="openInstallGuide(); return false;">Vill du lägga till denna sida?</button>
     <div class="credit">Denna widget är programmerad av Tony Ejremar.</div>
     <div class="guide-backdrop" id="installGuide" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
       <div class="guide">
@@ -152,10 +152,12 @@
         nativeInstallBtn.hidden = !installPromptEvent;
       }
       guideEl.classList.add("open");
+      guideEl.style.display = "flex";
       document.body.style.overflow = "hidden";
     }
     function closeInstallGuide() {
       guideEl.classList.remove("open");
+      guideEl.style.display = "none";
       document.body.style.overflow = "";
     }
     document.getElementById("showInstallGuide").addEventListener("click", openInstallGuide);
